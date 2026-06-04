@@ -5,7 +5,7 @@ class QueryDiscoveryAgent(BaseAgent):
     def run(self, profile):
         prompt = self._build_prompt(profile)
 
-        queries = self.llm_service.generate_json(prompt)
+        queries = self.llm_service.generate_query_json(prompt)
 
         return queries
 
