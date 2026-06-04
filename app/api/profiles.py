@@ -25,12 +25,23 @@ def create_profile():
 
 @profiles_bp.get("/<profile_uuid>")
 def get_profile(profile_uuid):
-    try:
-        profile = ProfileService.get_by_uuid(profile_uuid)
-        if not profile:
-            return jsonify({"error": "Profile not found"}), 404
+    profile = ProfileService.get_by_uuid(profile_uuid)
 
-        response = ProfileResponseSchema.model_validate(profile, from_attributes=True)
-        return jsonify(response.model_dump(mode="json"))
-    except Exception as e:
-        return jsonify({"error": f"Failed to fetch profile: {str(e)}"}), 500
+    if not profile:
+        return jsonify({
+            "message": "Profile not found"
+        }), 404
+
+    profile_data = (
+        ProfileResponseSchema
+        .model_validate(profile)
+        .model_dump(mode="json")
+    )
+
+    profile_data["summary"] = (
+        ProfileService.get_profile_summary(
+            profile
+        )
+    )
+
+    return jsonify(profile_data)
