@@ -1,4 +1,5 @@
 from app.agents.base import BaseAgent
+from app.utils.enums import LLMResponseType
 from app.utils.scoring import calculate_opportunity_score
 
 
@@ -6,7 +7,7 @@ class VisibilityScoringAgent(BaseAgent):
     def run(self, profile, discovered_query):
         prompt = self._build_prompt(profile, discovered_query)
 
-        result = self.llm_service.generate_visibility_json(prompt)
+        result = self.llm_service.generate_json(prompt, LLMResponseType.VISIBILITY_SCORING)
 
         domain_visible = result.get("domain_visible", False)
 

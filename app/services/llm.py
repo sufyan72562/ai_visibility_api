@@ -1,56 +1,30 @@
 
-class LLMService:
-    def generate_query_json(self, prompt: str):
-        """
-        Temporary mock response.
-        Later this method will call OpenAI.
-        """
-        return [
-            {
-                "query": "What is the best SEO content optimization tool?",
-                "search_volume": 1200,
-                "difficulty": 45,
-                "commercial_intent": 0.8,
-            },
-            {
-                "query": "Surfer SEO vs Clearscope",
-                "search_volume": 900,
-                "difficulty": 55,
-                "commercial_intent": 0.9,
-            },
-            {
-                "query": "Best AI SEO tools for agencies",
-                "search_volume": 1500,
-                "difficulty": 60,
-                "commercial_intent": 0.85,
-            },
-        ]
-    
-    def generate_visibility_json(self, prompt: str):
-        if "visibility evaluator" in prompt:
-            return {
-                "domain_visible": False,
-                "visibility_position": None,
-                "ai_response_excerpt": "The AI answer mentions competitors but does not clearly mention the target domain.",
-            }
+from app.mock.llm_responses import (
+    QUERY_DISCOVERY_RESPONSE,
+    VISIBILITY_SCORING_RESPONSE,
+    CONTENT_RECOMMENDATION_RESPONSE,
+)
 
-        return [
-            {
-                "query": "What is the best SEO content optimization tool?",
-                "search_volume": 1200,
-                "difficulty": 45,
-                "commercial_intent": 0.8,
-            },
-            {
-                "query": "Surfer SEO vs Clearscope",
-                "search_volume": 900,
-                "difficulty": 55,
-                "commercial_intent": 0.9,
-            },
-            {
-                "query": "Best AI SEO tools for agencies",
-                "search_volume": 1500,
-                "difficulty": 60,
-                "commercial_intent": 0.85,
-            },
-        ]
+from app.utils.enums import LLMResponseType
+
+class LLMService:
+    def generate_json(
+        self,
+        prompt: str,
+        response_type: LLMResponseType,
+    ):
+        """
+        Temporary mocked LLM response handler.
+        Later this method will call OpenAI and parse JSON.
+        """
+
+        mock_responses = {
+            LLMResponseType.QUERY_DISCOVERY: QUERY_DISCOVERY_RESPONSE,
+            LLMResponseType.VISIBILITY_SCORING: VISIBILITY_SCORING_RESPONSE,
+            LLMResponseType.CONTENT_RECOMMENDATION: CONTENT_RECOMMENDATION_RESPONSE,
+        }
+
+        if response_type not in mock_responses:
+            raise ValueError(f"Unsupported LLM response type: {response_type}")
+
+        return mock_responses[response_type]
