@@ -1,7 +1,9 @@
 from app.models.query import DiscoveredQuery
 from app.models.pipeline_run import PipelineRun
 from app.services.profile_service import ProfileService
-
+from app.services.llm import LLMService
+from app.agents.scoring import VisibilityScoringAgent
+from app.extensions import db
 
 class QueryService:
     VALID_STATUSES = {"visible", "not_visible", "unknown"}
@@ -52,3 +54,39 @@ class QueryService:
                 error_out=False,
             )
         )
+    
+    @staticmethod
+    def recheck(query_uuid: str):
+        query = DiscoveredQuery.query.filter_by(
+            uuid=query_uuid
+        ).first()
+
+        if not query:
+            raise ValueError("Query not found")
+
+        profile = query.pipeline_run.profile
+
+        llm_service = LLMService()
+        scoring_agent = VisibilityScoringAgent(
+            llm_service
+        )
+
+        scoring_result = scoring_agent.run(
+            profile,
+            query,
+        )
+
+        query.domain_visible = scoring_result["domain_visible"]
+        query.visibility_position = (
+            scoring_result["visibility_position"]
+        )
+        query.ai_response_excerpt = (
+            scoring_result["ai_response_excerpt"]
+        )
+        query.opportunity_score = (
+            scoring_result["opportunity_score"]
+        )
+
+        db.session.commit()
+
+        return query

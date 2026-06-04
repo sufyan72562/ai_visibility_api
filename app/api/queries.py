@@ -36,3 +36,24 @@ def list_profile_queries(profile_uuid):
             "has_prev": paginated_queries.has_prev,
         }
     }), 200
+
+
+@queries_bp.post("/<query_uuid>/recheck")
+def recheck_query(query_uuid):
+    try:
+        query = QueryService.recheck(
+            query_uuid
+        )
+
+    except ValueError as exc:
+        return jsonify({
+            "message": str(exc)
+        }), 404
+
+    response = (
+        QueryResponseSchema
+        .model_validate(query)
+        .model_dump(mode="json")
+    )
+
+    return jsonify(response), 200
