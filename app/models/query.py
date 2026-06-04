@@ -29,6 +29,6 @@ class DiscoveredQuery(db.Model):
     pipeline_run = db.relationship("PipelineRun", back_populates="queries")
     recommendations = db.relationship(
         "ContentRecommendation",
-        back_populates="query",
+        back_populates="discovered_query",
         cascade="all, delete-orphan",
     )

@@ -1,11 +1,13 @@
 from app.agents.base import BaseAgent
+from app.utils.enums import LLMResponseType
 
 
 class QueryDiscoveryAgent(BaseAgent):
     def run(self, profile):
         prompt = self._build_prompt(profile)
 
-        queries = self.llm_service.generate_query_json(prompt)
+        queries = self.llm_service.generate_json(prompt, 
+                                                 LLMResponseType.QUERY_DISCOVERY)
 
         return queries
 

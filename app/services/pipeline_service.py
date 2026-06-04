@@ -3,10 +3,12 @@ from datetime import datetime
 from app.extensions import db
 from app.models.pipeline_run import PipelineRun
 from app.models.query import DiscoveredQuery
+from app.models.recommendation import ContentRecommendation
 from app.services.profile_service import ProfileService
 from app.services.llm import LLMService
 from app.agents.discovery import QueryDiscoveryAgent
 from app.agents.scoring import VisibilityScoringAgent
+from app.agents.recommendation import ContentRecommendationAgent
 
 
 class PipelineService:
@@ -30,9 +32,12 @@ class PipelineService:
 
             discovery_agent = QueryDiscoveryAgent(llm_service)
             scoring_agent = VisibilityScoringAgent(llm_service)
+            recommendation_agent = ContentRecommendationAgent(llm_service)
 
             discovered_queries = discovery_agent.run(profile)
+
             saved_queries = []
+            generated_recommendations = []
 
             for item in discovered_queries:
                 query = DiscoveredQuery(
@@ -55,9 +60,24 @@ class PipelineService:
 
                 saved_queries.append(query)
 
+                if query.opportunity_score and query.opportunity_score >= 0.6:
+                    recommendation_result = recommendation_agent.run(profile, query)
+
+                    recommendation = ContentRecommendation(
+                        query_id=query.id,
+                        title=recommendation_result["title"],
+                        content_type=recommendation_result["content_type"],
+                        priority=recommendation_result["priority"],
+                        rationale=recommendation_result.get("rationale"),
+                        target_keywords=recommendation_result.get("target_keywords", []),
+                    )
+
+                    db.session.add(recommendation)
+                    generated_recommendations.append(recommendation)
+
             pipeline_run.queries_discovered = len(discovered_queries)
             pipeline_run.queries_scored = len(saved_queries)
-            pipeline_run.recommendations_generated = 0
+            pipeline_run.recommendations_generated = len(generated_recommendations)
             pipeline_run.status = "completed"
             pipeline_run.completed_at = datetime.utcnow()
 

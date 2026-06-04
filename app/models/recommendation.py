@@ -21,4 +21,4 @@ class ContentRecommendation(db.Model):
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
-    query = db.relationship("DiscoveredQuery", back_populates="recommendations")
+    discovered_query = db.relationship("DiscoveredQuery", back_populates="recommendations")
