@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
 from app.schemas.pipeline import PipelineRunResponseSchema
-from app.services.pipeline import PipelineService
+from app.services.pipeline_service import PipelineService
 
 pipeline_bp = Blueprint("pipeline", __name__)
 
