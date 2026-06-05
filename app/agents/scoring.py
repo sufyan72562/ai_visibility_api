@@ -1,5 +1,5 @@
 from app.agents.base import BaseAgent
-from app.utils.enums import LLMResponseType
+from app.services.llm import LLMResponseType
 from app.utils.scoring import calculate_opportunity_score
 
 
@@ -7,9 +7,12 @@ class VisibilityScoringAgent(BaseAgent):
     def run(self, profile, discovered_query):
         prompt = self._build_prompt(profile, discovered_query)
 
-        result = self.llm_service.generate_json(prompt, LLMResponseType.VISIBILITY_SCORING)
+        result = self.llm_service.generate_json(
+            prompt=prompt,
+            response_type=LLMResponseType.VISIBILITY_SCORING,
+        )
 
-        domain_visible = result.get("domain_visible", False)
+        domain_visible = result["domain_visible"]
 
         opportunity_score = calculate_opportunity_score(
             search_volume=discovered_query.estimated_search_volume,
@@ -20,28 +23,31 @@ class VisibilityScoringAgent(BaseAgent):
 
         return {
             "domain_visible": domain_visible,
-            "visibility_position": result.get("visibility_position"),
-            "ai_response_excerpt": result.get("ai_response_excerpt"),
+            "visibility_position": result["visibility_position"],
+            "ai_response_excerpt": result["ai_response_excerpt"],
             "opportunity_score": opportunity_score,
         }
 
     def _build_prompt(self, profile, discovered_query):
+        competitors = ", ".join(profile.competitors or [])
+
         return f"""
-        You are an AI search visibility evaluator.
+                    Business to evaluate:
+                    - Name: {profile.name}
+                    - Domain: {profile.domain}
+                    - Industry: {profile.industry}
+                    - Competitors: {competitors or "N/A"}
 
-        Business:
-        Name: {profile.name}
-        Domain: {profile.domain}
-        Industry: {profile.industry}
+                    Query:
+                    {discovered_query.query_text}
 
-        Query:
-        {discovered_query.query_text}
+                    Task:
+                    Estimate whether this business would appear in a high-quality AI-generated answer for this query.
 
-        Check whether this business would appear in an AI-generated answer
-        for this query.
-
-        Return JSON with:
-        - domain_visible: boolean
-        - visibility_position: number or null
-        - ai_response_excerpt: short text
-        """
+                    Rules:
+                    - domain_visible is true if the brand name or domain is likely to be mentioned.
+                    - visibility_position is the likely mention position among recommended brands/tools.
+                    - Use null for visibility_position if the business is not visible.
+                    - ai_response_excerpt should briefly explain what the AI answer would likely mention.
+                    - Be conservative if uncertain.
+                    """
