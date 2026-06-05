@@ -119,6 +119,48 @@ Base path: `/api/v1`
 ### Recommendations
 - `GET /api/v1/recommendations/profiles/<profile_uuid>` — list recommendations
 
+## Example curl Commands
+
+Replace `PROFILE_UUID` and `QUERY_UUID` with values returned by the API.
+
+### 1. Create a profile
+```sh
+curl -X POST http://localhost:5000/api/v1/profiles \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Acme AI Tools",
+    "domain": "https://acme.example",
+    "industry": "SaaS",
+    "description": "AI workflow platform for teams",
+    "competitors": ["Competitor A", "Competitor B"]
+  }'
+```
+
+### 2. Get a profile
+```sh
+curl http://localhost:5000/api/v1/profiles/PROFILE_UUID
+```
+
+### 3. Run the pipeline for a profile
+```sh
+curl -X POST http://localhost:5000/api/v1/profiles/PROFILE_UUID/run
+```
+
+### 4. List queries for a profile
+```sh
+curl "http://localhost:5000/api/v1/queries/profiles/PROFILE_UUID?page=1&per_page=10"
+```
+
+### 5. Recheck a specific query
+```sh
+curl -X POST http://localhost:5000/api/v1/queries/QUERY_UUID/recheck
+```
+
+### 6. List recommendations for a profile
+```sh
+curl http://localhost:5000/api/v1/recommendations/profiles/PROFILE_UUID
+```
+
 ## Real OpenAI Integration
 
 The actual LLM integration lives in `app/services/llm.py`.
